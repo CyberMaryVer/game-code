@@ -1,2 +1,9 @@
+absl-py
+attrs
+dataclasses
+imutils
 mediapipe
-numpy
+numpy==1.20.2
+opencv-python
+protobuf
+PyYAML
