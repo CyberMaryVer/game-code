@@ -1,5 +1,6 @@
 import os
 import cv2.cv2 as cv2
+# from PIL import Image
 from time import time
 import imutils
 import numpy as np
@@ -8,11 +9,11 @@ from mp_predictor import MpipePredictor, get_updated_keypoints
 from visualization import visualize_keypoints, draw_box_with_text2
 from geometry import get_distance
 
-KEYPOINTS_FOR_GAME = ["left_wrist", "right_wrist"]
+KEYPOINTS_FOR_GAME = ["left_wrist", "right_wrist", "nose"]
 WITH_SKELETON = False
 GAMES_NUMBER = 6
 WINDOW_NAME = "Destroy the danger!"
-SCALE = 1.6
+SCALE = 1.2
 IMAGE_SIZE = (275, 200)
 SAVE_OUTPUT = True
 SAVE_PATH = "demo.mp4"
@@ -46,6 +47,12 @@ def find_images(size=IMAGE_SIZE):
     danger = cv2.resize(danger, size)
 
     return safe, danger
+
+
+def get_cat_path():
+    paths = [os.path.join("./cat", p) for p in os.listdir("./cat")]
+    # return np.random.choice(paths)
+    return paths[4]
 
 
 def draw_box_with_text(img, text=None, edge_color=(255, 255, 255), border=2, mode=0):
@@ -114,11 +121,11 @@ def mp_pose_game(img, keypoints, shape, game_state=0,
     elif abs(xx1 - xa) < success_radius and abs(yy1 - ya) < success_radius:
         game_state = 2
         txt = f"NO, IT'S NOT DANGEROUS"
-        print(f"DEBUG: {abs(xx1 - xa)}, {abs(yy1 - ya)} - radius {success_radius}")
+        # print(f"DEBUG: {abs(xx1 - xa)}, {abs(yy1 - ya)} - radius {success_radius}")
         color1 = color_fail
     elif abs(xx2 - xa) < success_radius and abs(yy2 - ya) < success_radius:
         game_state = 4
-        print(f"DEBUG: {abs(xx1 - xa)}, {abs(yy1 - ya)} - radius {success_radius}")
+        # print(f"DEBUG: {abs(xx1 - xa)}, {abs(yy1 - ya)} - radius {success_radius}")
         txt = f"WELL DONE!!!!"
         color2 = color_end
     else:
@@ -128,8 +135,10 @@ def mp_pose_game(img, keypoints, shape, game_state=0,
     txt = f"{txt} {right_answer.upper()}"
 
     try:
-        img = cv2.rectangle(img, (xx1-15, yy1-15), (xx1 + 290, yy1 + 215), color1, thickness=-1, lineType=cv2.LINE_AA)
-        img = cv2.rectangle(img, (xx2-15, yy2-15), (xx2 + 290, yy2 + 215), color2, thickness=-1, lineType=cv2.LINE_AA)
+        img = cv2.rectangle(img, (xx1 - 15, yy1 - 15), (xx1 + 290, yy1 + 215), color1, thickness=-1,
+                            lineType=cv2.LINE_AA)
+        img = cv2.rectangle(img, (xx2 - 15, yy2 - 15), (xx2 + 290, yy2 + 215), color2, thickness=-1,
+                            lineType=cv2.LINE_AA)
         img[yy1:yy1 + 200, xx1:xx1 + 275] = cv2.resize(img_r, (275, 200))
         img[yy2:yy2 + 200, xx2:xx2 + 275] = cv2.resize(img_w, (275, 200))
     except ValueError as e:
@@ -234,12 +243,18 @@ def main():
                 txt = "Try to stay visible for the camera"
                 frame = draw_box_with_text(frame, txt, edge_color=(255, 255, 255), border=6)
 
+            # -------------- cat -------------- #
+            if game == 2:
+                cat_path = get_cat_path()
+                frame = draw_cat(img=frame, cat_path=cat_path, show_text=False)
+            # -------------- --- -------------- #
+
             cv2.imshow(WINDOW_NAME, frame)
             cv2.waitKey(delay)
             delay = 1
 
             if SAVE_OUTPUT:
-                if video_output is None and not frame.shape[0] == 1048:  # open output file when 1st frame is received
+                if video_output is None and not frame.shape[0] == 900:  # open output file when 1st frame is received
                     frame_width, frame_height, _ = [int(num) for num in frame.shape]
                     # print(frame_height, frame_width)
                     video_output = cv2.VideoWriter(filename=SAVE_PATH,
@@ -257,8 +272,11 @@ def main():
     cam.release()
     cv2.waitKey(5)
 
+    if SAVE_OUTPUT and video_output is not None:
+        video_output.release()
+
     if "WIN" in txt:
-        frame_color = (0, 255, 0)
+        frame_color = (242, 242, 242)
     elif "OVER" in txt:
         frame_color = (188, 188, 188)
     else:
@@ -275,6 +293,7 @@ def main():
     final_photo = draw_box_with_text(final_photo, txt, edge_color=frame_color, border=6)
 
     final_photo = improve_photo(final_photo)
+    final_photo = draw_cat(img=final_photo)
 
     cv2.imshow(WINDOW_NAME, final_photo)
     date_and_time = datetime.now().strftime("%d.%m.%Y_%H.%M")
@@ -282,9 +301,6 @@ def main():
     img_path = "gallery/" + img_name
     cv2.imwrite(img_path, final_photo)
     cv2.waitKey(0)
-
-    if SAVE_OUTPUT and video_output is not None:
-        video_output.release()
 
     while cv2.waitKey(1) != 27:
         pass
@@ -301,16 +317,57 @@ def improve_photo(img):
     return img
 
 
-def draw_box_with_cat(img):
-    cat = cv2.imread("./images/cat.png")
+def replace_alpha(img_path):
+    # load image with alpha channel.  use IMREAD_UNCHANGED to ensure loading of alpha channel
+    image = cv2.imread(img_path, cv2.IMREAD_UNCHANGED)
 
-    pass
+    try:
+        # make mask of where the transparent bits are
+        trans_mask = image[:, :, 3] == 0
+        # replace areas of transparency with white and not transparent
+        image[trans_mask] = [255, 255, 255, 255]
+
+    except Exception as e:
+        print(f"{type(e)}: {e}")
+
+    # new image without alpha channel...
+    new_img = cv2.cvtColor(image, cv2.COLOR_BGRA2BGR)
+    return new_img
+
+
+def draw_cat(img=None, img_path=None, cat_path=None, show_text=True):
+
+    if img is None and img_path is not None:
+        img = cv2.imread(img_path)
+    elif img is None and img_path is None:
+        return
+    else:
+        print(img.shape)
+    img_h, img_w = img.shape[0], img.shape[1]
+
+    cat_h, cat_w = (270, 325) if cat_path is None else (360, 225)
+    png = True if cat_path is not None else False
+    cat_path = "./images/cat.jpg" if cat_path is None else cat_path
+
+    if png:
+        cat = replace_alpha(cat_path)
+        cat = cv2.resize(cat, (cat_h, cat_w))
+        img[img_h - cat_w:img_h, 100:cat_h + 100] = np.where(cat > 240, img[img_h - cat_w:img_h, 100:cat_h + 100], cat)
+    else:
+        cat = cv2.imread(cat_path)
+        cat = cv2.resize(cat, (cat_h, cat_w))
+        img[img_h - cat_w:img_h, img_w - cat_h:] = np.where(cat > 240, img[img_h - cat_w:img_h, img_w - cat_h:], cat)
+
+    if show_text:
+        text = cv2.imread("./txt/text1.jpg")
+        text = cv2.resize(text, (300, 125))
+        img[img_h - 205:img_h-80, 100:400] = np.where(text > 240, img[img_h - 205:img_h-80, 100:400], text)
+
+    # cv2.imshow("", img)
+    # cv2.waitKey(0)
+    return img
 
 
 if __name__ == "__main__":
     main()
-    # find_images()
-    # im = cv2.imread("tests/out.jpg")
-    # im = improve_photo(im)
-    # cv2.imshow("", im)
-    # cv2.waitKey(0)
+    # draw_cat(img_path="./gallery/result_27.11.2021_06.58.jpg")

@@ -3,7 +3,7 @@ attrs
 dataclasses
 imutils
 mediapipe
-numpy==1.20.2
+numpy
 opencv-python
 protobuf
 PyYAML
