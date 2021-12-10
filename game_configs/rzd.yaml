@@ -1,0 +1,28 @@
+WINDOW_NAME: "Destroy the danger!"
+
+TEXT: "Fuck you RZD"
+
+DESCRIPTION:
+  title: "Interactive app"
+  author: "@cybermary"
+
+KEYPOINTS_FOR_GAME: ["left_wrist", "right_wrist"]
+
+GAMES_NUMBER: 6
+
+SCALE: 1.2
+IMAGE_SIZE: [0.4, 0.6]
+
+SAVE_OUTPUT: True
+SAVE_PATH: "demo.mp4"
+
+IMAGE_PATH: "images"
+IMAGE_TAGS: ["danger", "safe"]
+IMAGE_CAT: "cat"
+
+META_WIN: 0
+META_FAIL: 6
+PAUSE_MAX: 16
+
+SPEED: 4
+ACCELERATION: 1

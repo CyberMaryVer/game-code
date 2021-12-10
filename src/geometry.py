@@ -68,55 +68,6 @@ def get_text_coords(keypoint_coords, scale):
     return x, y
 
 
-def get_angle_dict(keypoint_dict, side=None, dict_is_updated=False):
-    # calculate central points
-    keypoint_dict_ = keypoint_dict.copy()
-
-    angles_dict = {}
-    for point_name, i in POINTS_TO_USE.items():
-        # set visibility for each side
-        if side == "L":
-            visible = VISIBLE_LEFT
-        elif side == "R":
-            visible = VISIBLE_RIGHT
-        else:
-            visible = POINTS_TO_USE.keys()  # VISIBLE_ALL
-
-        if point_name in visible:
-            a, b, c = keypoint_dict_[i[0]], keypoint_dict_[i[1]], keypoint_dict_[i[2]]
-            angle = get_angle(a, b, c)
-            angle = int(angle)
-            text_cords = keypoint_dict_[i[1]]
-            angles_dict.update({point_name: [angle, text_cords]})
-
-    return angles_dict
-
-
-def define_symmetry(angles_dict, allowed_diff=15, threshold=None):
-    n1 = len([key for key in angles_dict.keys() if "right" in key])
-    n2 = len([key for key in angles_dict.keys() if "left" in key])
-    assert n1 == n2
-    angles_to_analyze = ['_elbow', '_knee', '_shoulder', '_hip_center', '_neck_center', '_hip']
-    asymmetry_dict = {}
-
-    for angle in angles_to_analyze:
-        right_point, left_point = 'right' + angle, 'left' + angle
-
-        # get visibility for the points centers
-        t1, t2 = float(angles_dict[right_point][1][-1]), float(angles_dict[left_point][1][-1])
-        visibility = True if threshold is None else (t1 > threshold and t2 > threshold)
-
-        if visibility:
-            angle1 = angles_dict[right_point][0]
-            angle2 = angles_dict[left_point][0]
-            diff = angle1 - angle2
-
-            if abs(diff) > allowed_diff:
-                asymmetry_dict.update({angle: diff})
-
-    return asymmetry_dict
-
-
 def get_intersect(x1, y1, x2, y2):
     """
     Returns the point of intersection of the lines or None if lines are parallel
@@ -156,22 +107,6 @@ def triangle_centroid(p1, p2, p3):
     y = int((p1[1] + p2[1] + p3[1]) / 3)
 
     return x, y
-
-
-def center_of_gravity(keypoints):
-    # p1 = keypoints["left_ankle"]
-    # p2 = keypoints["right_ankle"]
-    # p3 = keypoints["neck_center"]
-    # centroid = triangle_centroid(p1, p2, p3)
-    x, y, _ = keypoints["hip_center"]
-    x_line = (x, y)
-    x1, y1, _ = keypoints["left_ankle"]
-    x2, y2, _ = keypoints["right_ankle"]
-    x = (x1 + x2) // 2
-    y = (y1 + y2) // 2
-    y_line = (x, y)
-
-    return x_line, y_line
 
 
 def get_distance(p1, p2):

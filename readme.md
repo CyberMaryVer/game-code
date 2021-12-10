@@ -17,8 +17,8 @@ pip install -r requirements.txt
 
 ### Запуск
 
-Запустите файл *rzd.py* или введите команду в терминале
+Запустите файл *app.py* или введите команду в терминале
 
 ```shell
-python rzd.py
+python app.py
 ```

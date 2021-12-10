@@ -4,8 +4,9 @@
 import mediapipe as mp
 import cv2.cv2 as cv2
 import os
-from visualization import CvFpsCalc, visualize_keypoints
-from geometry import get_central_points
+
+from src.visualization import visualize_keypoints
+from src.geometry import get_central_points
 
 _KEYPOINT_THRESHOLD = .5
 
@@ -32,96 +33,6 @@ class MpipePredictor(mp.solutions.pose.Pose):
             self.basename = os.path.basename(self.path_to_video)
         self.keypoints = {}
         self.tracking = {}
-
-    def run_on_webcam(self, skeleton=1, mode=None, joints=True, threshold=.5, side=None, draw_invisible=False,
-                      save_output=False, save_path=None, color_mode=None):
-        cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-        cvFpsCalc = CvFpsCalc(buffer_len=10)
-        scale = cam.get(3) / 850
-        output_file = None
-        cam_width, cam_height = int(cam.get(3)), int(cam.get(4))
-        # print(cam_width, cam_height)
-        with self:
-            if save_output:
-                if save_path is None:
-                    output_filename = "webcam_out.mp4"
-                else:
-                    output_filename = save_path
-
-                output_file = cv2.VideoWriter(
-                    filename=output_filename,
-                    fourcc=cv2.VideoWriter_fourcc(*"mp4v"),
-                    fps=20.,
-                    frameSize=(cam_width, cam_height),
-                    isColor=True, )
-
-            while cv2.waitKey(1) != 27:
-
-                ret, frame = cam.read()
-                frame = cv2.flip(frame, 1)
-
-                try:
-                    outputs = self.get_keypoints(frame)
-                    kps = get_updated_keypoints(outputs)
-                    frame = visualize_keypoints(kps, frame, skeleton=skeleton, dict_is_updated=True, joints=joints,
-                                                threshold=threshold, side=side, mode=mode, scale=scale * 2)
-
-                except Exception as e:
-                    # print(e)
-                    pass
-
-                display_fps = cvFpsCalc.get()
-                frame = cv2.putText(frame, "FPS:" + str(display_fps), (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
-                                    1.0, (0, 255, 0), 2, cv2.LINE_AA)
-                if save_output:
-                    output_file.write(frame)
-
-                cv2.imshow('frame', frame)
-
-        cam.release()
-        if save_output:
-            output_file.release()
-        else:
-            cv2.destroyAllWindows()
-
-    def run_on_video(self, side=None, skeleton=1, mode=None, joints=True, threshold=.5, color_mode=None,
-                     draw_invisible=False, save_output=False, save_path=None, debug_params=None):
-        if self.path_to_video is None:
-            return
-
-        output_file = None
-
-        with self:
-            if save_output:
-                if save_path is None:
-                    output_filename = os.path.join(self.basename.split('.')[0] + "_out.mp4")
-                else:
-                    output_filename = save_path
-
-                output_file = cv2.VideoWriter(
-                    filename=output_filename,
-                    fourcc=cv2.VideoWriter_fourcc(*"mp4v"),
-                    fps=float(self.frames_per_second),
-                    frameSize=(self.width, self.height),
-                    isColor=True, )
-
-            frame_gen = self._frame_from_video(self.video)
-            for frame in frame_gen:
-                keypoints = self.get_keypoints(frame)
-                frame = visualize_keypoints(keypoints, frame, skeleton=skeleton, side=side, mode=mode,
-                                            scale=self.scale, threshold=threshold, color_mode=color_mode,
-                                            draw_invisible=draw_invisible, joints=joints, dict_is_updated=False)
-                if save_output:
-                    output_file.write(frame)
-
-                yield frame, keypoints
-
-            self.video.release()
-
-            if save_output:
-                output_file.release()
-            else:
-                cv2.destroyAllWindows()
 
     def get_keypoints(self, img, get3d=False):
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -185,6 +96,3 @@ if __name__ == "__main__":
     # example of mediapipe inference
     predictor = MpipePredictor(detection_thr=.8, tracking_thr=.9)
     kps = predictor.get_keypoints(im)
-    visualize_keypoints(kps, im, threshold=0., mode="gravity_center")
-    cv2.imshow("", im)
-    cv2.waitKey(0)
