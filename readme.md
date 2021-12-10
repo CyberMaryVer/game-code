@@ -9,8 +9,8 @@
 Введите следующие команды в терминале для установки приложения
 
 ```shell
-git clone https://github.com/CyberMaryVer/rzd-code.git
-cd rzd-code
+git clone https://github.com/CyberMaryVer/game-code.git
+cd game-code
 virtualenv venv
 pip install -r requirements.txt
 ```
