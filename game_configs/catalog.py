@@ -41,7 +41,7 @@ class GameConfigLoader:
         return cls(path)
 
     @classmethod
-    def princess(cls):
+    def scp(cls):
         config = "scp.yaml"
         path = cls._get_path(config)
         return cls(path)

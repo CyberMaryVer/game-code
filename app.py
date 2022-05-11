@@ -582,7 +582,7 @@ def test_opencv(test_brightness=True, test_add_sticker=False, test_hue=True):
 
 
 if __name__ == "__main__":
-    game_config = GameConfigLoader.princess()
+    game_config = GameConfigLoader.rzd()
     game = ActiveGame(config=game_config)
     game.play()
     # test_opencv()

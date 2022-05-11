@@ -16,7 +16,7 @@ IMAGE_SIZE: [0.6, 0.64]
 SAVE_OUTPUT: True
 SAVE_PATH: "demo_scp.mp4"
 
-IMAGE_PATH: "images_princess"
+IMAGE_PATH: "images_scp"
 IMAGE_TAGS: ["ugly", "cute"]
 IMAGE_CAT: "cat"
 
