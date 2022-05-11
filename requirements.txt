@@ -2,7 +2,7 @@ absl-py
 attrs
 dataclasses
 imutils
-mediapipe
+mediapipe==0.8.9
 numpy
 opencv-python
 protobuf

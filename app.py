@@ -420,6 +420,8 @@ class ActiveGame:
         img_name = f"result_{date_and_time}.jpg"
         img_path = "gallery/" + img_name
         cv2.imwrite(img_path, final_photo)
+
+        # print(f"Final photo was saved here: {img_path}")
         return final_photo
 
     def apply_filter(self, img):
@@ -580,7 +582,7 @@ def test_opencv(test_brightness=True, test_add_sticker=False, test_hue=True):
 
 
 if __name__ == "__main__":
-    game_config = GameConfigLoader.rzd()
+    game_config = GameConfigLoader.princess()
     game = ActiveGame(config=game_config)
     game.play()
     # test_opencv()

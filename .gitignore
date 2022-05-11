@@ -3,3 +3,4 @@ venv/
 __pycache__
 gallery/*.jpg
 sandbox.py
+demo*.mp4

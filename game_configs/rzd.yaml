@@ -14,7 +14,7 @@ SCALE: 1.2
 IMAGE_SIZE: [0.4, 0.6]
 
 SAVE_OUTPUT: True
-SAVE_PATH: "demo.mp4"
+SAVE_PATH: "demo_rzd.mp4"
 
 IMAGE_PATH: "images"
 IMAGE_TAGS: ["danger", "safe"]

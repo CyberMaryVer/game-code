@@ -46,6 +46,12 @@ class GameConfigLoader:
         path = cls._get_path(config)
         return cls(path)
 
+    @classmethod
+    def covid(cls):
+        config = "covid.yaml"
+        path = cls._get_path(config)
+        return cls(path)
+
     @staticmethod
     def read_cfg_file(config):
         with open(config) as info:
